@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "datastructs.h"
+
+#define PATHLENLIM 100
 
 /*
 int test() {
@@ -54,7 +58,26 @@ int test() {
 }
 */
 
+// Gather an existing path to the database.
+char *getDataPath() {
+    char dataPath[PATHLENLIM]; 
+    while(access(dataPath, F_OK) != 0) {
+        printf("Enter the filepath to your dataset: ");
+        scanf("%s", dataPath);
+        if(access(dataPath, F_OK) != 0)
+            printf("File not found!\n");
+    }
+
+    char *pointPath = malloc(PATHLENLIM * sizeof(char));
+    strcpy(pointPath, dataPath);
+    return pointPath; 
+}
+
 int main() {
-    
+    // Gather file path
+    char *dataPath = getDataPath();
+    printf("Selected file: %s\n", dataPath);
+
+    free(dataPath); 
     return 0;
 }
