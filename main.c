@@ -2,11 +2,7 @@
 #include <stdlib.h>
 #include "datastructs.h"
 
-int main() {
-    
-    return 0;
-}
-
+/*
 int test() {
     // Test day struct
     char testDate[DATELEN] = "2023-08-30";
@@ -34,10 +30,12 @@ int test() {
     float *columnValues = malloc(2 * sizeof(float));
     columnValues[0] = 77.0;
     columnValues[1] = 5.0;
+    
+    int *numColumns = malloc(sizeof(int));
+    *numColumns = 2; 
 
     // Construct the day
-    dayData *d = malloc(sizeof(dayData));
-    d = init_day(testDate, columnNames, columnValues, 2);
+    dayData *d = init_day(testDate, columnNames, columnValues, numColumns);
 
     // Print 
     int i = 0;
@@ -50,5 +48,13 @@ int test() {
     free(columnNames);
     free(column1);
     free(column2); 
+    free(numColumns); 
+    free(d); 
+    return 0;
+}
+*/
+
+int main() {
+    
     return 0;
 }

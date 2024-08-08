@@ -7,7 +7,8 @@ typedef struct day{
     char *date; 
     char **columnNames;
     float *columnValues;
+    int *numColumns; 
 } dayData;
 
 /* FUNCTION TEMPLATES */
-dayData *init_day(char date[DATELEN], char **columnNames, float *columnValues, int numColumns); 
+dayData *init_day(char *date, char **columnNames, float *columnValues, int *numColumns); 
