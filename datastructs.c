@@ -1,4 +1,4 @@
-#include <datastructs.h>
+#include "datastructs.h"
 #include <stdlib.h>
 
 /* FUNCTION DEFINITIONS */
