@@ -10,5 +10,12 @@ typedef struct day{
     int *numColumns; 
 } dayData;
 
+typedef struct info{
+    char *location;
+    char **columnNames; 
+} header;
+
 /* FUNCTION TEMPLATES */
-dayData *init_day(char *date, char **columnNames, float *columnValues, int *numColumns); 
+dayData *initDay(char *date, char **columnNames, float *columnValues, int *numColumns); 
+
+header *buildHeader(char *location, char **columnNames); 

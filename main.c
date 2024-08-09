@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 #include "datastructs.h"
 
 #define PATHLENLIM 100
@@ -73,10 +74,45 @@ char *getDataPath() {
     return pointPath; 
 }
 
+// Get the size of the data set.
+int getDataSize() {
+    int setSize = -1;
+    while(setSize <= 0) {
+        char checkInt[PATHLENLIM];
+        printf("Enter the size of the dataset (must be positive): ");
+        scanf("%s", checkInt);
+        char isNum = 1; 
+        for(int i = 0; i < strlen(checkInt); i++) {
+            if(!isdigit(checkInt[i])) {
+                printf("Invalid input!\n"); 
+                isNum = 0;
+                break;
+            }
+        }
+        if(isNum == 1)
+            sscanf(checkInt, "%d", &setSize);
+    }
+
+    return setSize; 
+}
+
+// Gather the entries from the dataset. 
+void gatherData(char *dataPath, int setSize) {
+    FILE *fptr = fopen(dataPath, 'r');
+
+    fclose(fptr); 
+}
+
 int main() {
     // Gather file path
     char *dataPath = getDataPath();
     printf("Selected file: %s\n", dataPath);
+
+    // Get size of dataset.
+    int setSize = getDataSize(); 
+    printf("Selected dataset size: %d\n", setSize);
+
+    gatherData(dataPath, setSize);
 
     free(dataPath); 
     return 0;
