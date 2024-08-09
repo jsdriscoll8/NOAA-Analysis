@@ -54,11 +54,30 @@ dayData *gatherData(char *dataPath, int setSize) {
     int numEntriesAdded = 0; 
     dayData *dayEntries = malloc(setSize * sizeof(dayData));
 
+    // Parse the data. Ignore station ID & location.
     char inQuotes = 0;
-    int i = 0;
+    int i = 0, commaCount = 0;
     while((line = getline(&entry, &len, fptr)) != -1 && numEntriesAdded < setSize) {
-        for(i = 0; i < strlen(entry); i++)
-           printf("%c", entry[i]);
+        commaCount = 0, inQuotes = 0;
+
+        for(i = 0; i < strlen(entry); i++){
+            // Keep track of when we are in quotations, so that we don't escape the true column. 
+            if(entry[i] == '"') {
+                if(inQuotes == 0)
+                    inQuotes = 1;
+                else
+                    inQuotes = 0; 
+            }
+
+            // If not between quotes, we are moving into a new column. 
+            else if(entry[i] == ',') {
+                if(inQuotes == 0)
+                    commaCount++; 
+            }
+
+            
+        }
+
         numEntriesAdded++;
     }
 
