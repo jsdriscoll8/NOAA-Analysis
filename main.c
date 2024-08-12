@@ -28,24 +28,22 @@ char *getDataPath() {
 
 // Get the size of the data set.
 int getDataSize() {
-    int setSize = -1;
-    while(setSize <= 0) {
-        char checkInt[PATHLENLIM];
-        printf("Enter the size of the dataset (must be positive): ");
-        scanf("%s", checkInt);
-        char isNum = 1; 
-        for(int i = 0; i < strlen(checkInt); i++) {
-            if(!isdigit(checkInt[i])) {
-                printf("Invalid input!\n"); 
-                isNum = 0;
-                break;
-            }
-        }
-        if(isNum == 1)
-            sscanf(checkInt, "%d", &setSize);
-    }
+    // Setup vars.
+    FILE *fptr = fopen(dataPath, "r");
+    char *entry;
+    size_t len = 0; 
+    ssize_t line = 0;
+    int numDataLines = 0; 
 
-    return setSize; 
+    // Exclude the header; obtain the number of entries.
+    line = getline(&entry, &len, fptr);
+    while((line = getline(&entry, &len, fptr)) != -1 && numEntriesAdded < setSize)
+        numDataLines++; 
+
+    // Close and return.
+    free(entry);
+    fclose(fptr); 
+    return numDataLines;
 }
 
 // TODO: Reconfigure so that header mallocs based on # of quotes!
@@ -109,8 +107,11 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
     const char c[2] = "\""; 
     size_t len = 0; 
     ssize_t line = 0; 
-    int numEntriesAdded = 0, column = 0; 
+    int numEntriesAdded = 0, curCol = 0; 
     dayData *entries = malloc(setSize * sizeof(dayData));
+
+    // PROBABLE SOURCE OF SEGFAULT: DEALLOCATING FOR ENTRIES THAT DON'T EXIST! AUTOMATICALLY OBTAIN DATA SIZE IN
+    // ANOTHER FUNCTION (e.g. numLines - 1)
 
     // Loop: feed in column data. Skip the first line (header) 
     line = getline(&entry, &len, fptr);
@@ -120,21 +121,23 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
 
         // 1. Parse the line with strtok
         token = strtok(entry, c);
-        while(token != NULL) {
-            if(token != ",") {
+        while(token != NULL && token != "\n") { // THERE IS NO NULL TOKEN IN THE FILE! DOH! 
+            if(strcmp(token, ",") != 0) {
                 char *column = malloc(MAXCOLLEN * sizeof(char));
+                strcpy(column, token);
+                columnValues[curCol] = column; 
                 printf("%s ", token);
-                column++;
+                curCol++;
             }
+            token = strtok(NULL, c);
         }
-        print(" "); 
 
         // 3. Place inside of dayDatas.
         entries[numEntriesAdded].columnValues = columnValues; 
         // 4. Return. 
         printf("\n");
         numEntriesAdded++;
-        column = 0;
+        curCol = 0;
     }
 
     // Free and return.
@@ -152,7 +155,8 @@ int main() {
 
     // Get size of dataset.
     int setSize = getDataSize(); 
-    printf("Selected dataset size: %d\n", setSize);
+    printf("Dataset size: %d\n", setSize);
+    scanf("");
 
     // Build header, print columns.
     dataHeader *header = getHeader(dataPath); 
@@ -173,8 +177,7 @@ int main() {
 
     // Free and finish.
     free(dataPath); 
+    freeData(data, setSize, header->numColumns);
     freeHeader(header);
-    for(int i = 0; i < setSize; i++)
-        freeData(data, setSize, header->numColumns);
     return 0;
 }
