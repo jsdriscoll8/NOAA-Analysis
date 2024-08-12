@@ -5,8 +5,12 @@
 #include <ctype.h>
 #include "datastructs.h"
 
-#define PATHLENLIM 100
 
+// -------------------------- CONSTANT DEFINITIONS ----------------------------------------------------
+#define PATHLENLIM 100
+#define MAXCOLLEN 50
+
+// -------------------------- FUNCTION DEFINITIONS ----------------------------------------------------
 // Gather an existing path to the database.
 char *getDataPath() {
     char dataPath[PATHLENLIM]; 
@@ -44,6 +48,53 @@ int getDataSize() {
     return setSize; 
 }
 
+dataHeader *getHeader(char *dataPath) {
+    // Open first line of file, set getline vars
+    FILE *fptr = fopen(dataPath, "r");
+    char *entry;
+    size_t len = 0; 
+    ssize_t line = 0;
+    char **columnNames = malloc(MAXNUMCOLS * sizeof(char *));
+    line = getline(&entry, &len, fptr);
+    int i = 0, inQuotes = 0, numCols = 0, curChar = 0;
+
+    // Run through the first line of file char by char. Get column names.
+    while(entry[i] != '\n') {
+        // printf("%c", entry[i]);
+        // Keep track of when we are inside of quotes, e.g. a column value.
+        // We don't want a contained comma to escape a column.
+        
+        if(entry[i] == '"') {
+            // Switch to inQuotes. Malloc a new char *.
+            if(inQuotes == 0) {
+                inQuotes = 1;
+                columnNames[numCols] = malloc(MAXCOLLEN * sizeof(char)); 
+                printf("Now in quotes.\n");
+            }
+            // End of column value. Terminate the value, append numCols, reset inQuotes & curChar. 
+            else {
+                columnNames[numCols][curChar + 1] = '\0'; 
+                numCols++;
+                curChar = 0, inQuotes = 0;
+                printf("Now out of quotes.\n");
+            }
+        }
+        // If we're in quotes, append the column value.
+        else if(inQuotes == 1) {
+            columnNames[numCols][curChar] = entry[i];
+            curChar++;
+        }
+        i++;
+    }
+
+    // Free, close, construct the header & return it. 
+    free(entry);
+    fclose(fptr); 
+    dataHeader *d = malloc(sizeof(dataHeader));
+    d->columnNames = columnNames;
+    return d;
+}
+
 // Gather the entries from the dataset. 
 dayData *gatherData(char *dataPath, int setSize) {
     // Setup: file pointer, 
@@ -52,40 +103,18 @@ dayData *gatherData(char *dataPath, int setSize) {
     size_t len = 0; 
     ssize_t line = 0; 
     int numEntriesAdded = 0; 
-    dayData *dayEntries = malloc(setSize * sizeof(dayData));
+    dayData *entries;
 
-    // Parse the data. Ignore station ID & location.
-    char inQuotes = 0;
-    int i = 0, commaCount = 0;
     while((line = getline(&entry, &len, fptr)) != -1 && numEntriesAdded < setSize) {
-        commaCount = 0, inQuotes = 0;
-
-        for(i = 0; i < strlen(entry); i++){
-            // Keep track of when we are in quotations, so that we don't escape the true column. 
-            if(entry[i] == '"') {
-                if(inQuotes == 0)
-                    inQuotes = 1;
-                else
-                    inQuotes = 0; 
-            }
-
-            // If not between quotes, we are moving into a new column. 
-            else if(entry[i] == ',') {
-                if(inQuotes == 0)
-                    commaCount++; 
-            }
-
-            
-        }
-
-        numEntriesAdded++;
     }
 
     free(entry);
     fclose(fptr); 
-    return dayEntries;
+    return entries;
 }
 
+
+// -------------------------------- MAIN LOOP ----------------------------------------------------------
 int main() {
     // Gather file path
     char *dataPath = getDataPath();
@@ -95,10 +124,10 @@ int main() {
     int setSize = getDataSize(); 
     printf("Selected dataset size: %d\n", setSize);
 
-    // Gather data
-    dayData *dayEntries = gatherData(dataPath, setSize);
+    // Build header
+    dataHeader *header = getHeader(dataPath);
 
     free(dataPath); 
-    free(dayEntries); 
+    freeHeader(header);
     return 0;
 }

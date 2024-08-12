@@ -1,21 +1,18 @@
 /* CONSTANTS */
 #define DATELEN 11
+#define MAXNUMCOLS 10
 
 /* STRUCT DEFINITIONS */
 // Base data struct. Contains a date and a number of columns and their associated data points.
 typedef struct day{
-    char *date; 
-    char **columnNames;
-    float *columnValues;
+    char *columnValues;
     int numColumns; 
 } dayData;
 
-typedef struct info{
-    char *location;
-    char **columnNames; 
-} header;
+typedef struct header {
+    char **columnNames;
+    int numColumns;
+} dataHeader;
 
-/* FUNCTION TEMPLATES */
-dayData *initDay(char *date, float *columnValues, int numColumns); 
-
-header *buildHeader(char *location, char **columnNames); 
+// Free the contained pointers within the header.
+void freeHeader(dataHeader *d);
