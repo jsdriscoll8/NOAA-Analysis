@@ -5,7 +5,7 @@
 /* STRUCT DEFINITIONS */
 // Base data struct. Contains a date and a number of columns and their associated data points.
 typedef struct day{
-    char *columnValues;
+    char **columnValues;
     int numColumns; 
 } dayData;
 
@@ -16,3 +16,5 @@ typedef struct header {
 
 // Free the contained pointers within the header.
 void freeHeader(dataHeader *d);
+
+void freeData(dayData *d, int setSize, int numColumns);

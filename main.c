@@ -48,15 +48,22 @@ int getDataSize() {
     return setSize; 
 }
 
+// TODO: Reconfigure so that header mallocs based on # of quotes!
 dataHeader *getHeader(char *dataPath) {
-    // Open first line of file, set getline vars
+    // Open first line of file, set getline vars, set loop fars, get number of cols. 
     FILE *fptr = fopen(dataPath, "r");
     char *entry;
     size_t len = 0; 
     ssize_t line = 0;
-    char **columnNames = malloc(MAXNUMCOLS * sizeof(char *));
     line = getline(&entry, &len, fptr);
-    int i = 0, inQuotes = 0, numCols = 0, curChar = 0;
+    int i = 0, inQuotes = 0, curCol = 0, curChar = 0, totalCols = 0;
+    while(entry[i] != '\n') {
+        if(entry[i] == '"')
+            totalCols++;
+        i++;
+    }
+    i = 0; 
+    char **columnNames = malloc(totalCols * sizeof(char *));
 
     // Run through the first line of file char by char. Get column names.
     while(entry[i] != '\n') {
@@ -68,20 +75,18 @@ dataHeader *getHeader(char *dataPath) {
             // Switch to inQuotes. Malloc a new char *.
             if(inQuotes == 0) {
                 inQuotes = 1;
-                columnNames[numCols] = malloc(MAXCOLLEN * sizeof(char)); 
-                printf("Now in quotes.\n");
+                columnNames[curCol] = malloc(MAXCOLLEN * sizeof(char)); 
             }
             // End of column value. Terminate the value, append numCols, reset inQuotes & curChar. 
             else {
-                columnNames[numCols][curChar + 1] = '\0'; 
-                numCols++;
+                columnNames[curCol][curChar + 1] = '\0'; 
+                curCol++;
                 curChar = 0, inQuotes = 0;
-                printf("Now out of quotes.\n");
             }
         }
         // If we're in quotes, append the column value.
         else if(inQuotes == 1) {
-            columnNames[numCols][curChar] = entry[i];
+            columnNames[curCol][curChar] = entry[i];
             curChar++;
         }
         i++;
@@ -92,22 +97,47 @@ dataHeader *getHeader(char *dataPath) {
     fclose(fptr); 
     dataHeader *d = malloc(sizeof(dataHeader));
     d->columnNames = columnNames;
+    d->numColumns = curCol;
     return d;
 }
 
 // Gather the entries from the dataset. 
-dayData *gatherData(char *dataPath, int setSize) {
-    // Setup: file pointer, 
+dayData *gatherData(char *dataPath, int setSize, int numColumns) {
+    // Setup: file pointer, loop vars
     FILE *fptr = fopen(dataPath, "r");
-    char *entry;
+    char *entry, *token;
+    const char c[2] = "\""; 
     size_t len = 0; 
     ssize_t line = 0; 
-    int numEntriesAdded = 0; 
-    dayData *entries;
+    int numEntriesAdded = 0, column = 0; 
+    dayData *entries = malloc(setSize * sizeof(dayData));
 
+    // Loop: feed in column data. Skip the first line (header) 
+    line = getline(&entry, &len, fptr);
     while((line = getline(&entry, &len, fptr)) != -1 && numEntriesAdded < setSize) {
+        // 0. Setup 
+        char **columnValues = malloc(numColumns * sizeof(char *));
+
+        // 1. Parse the line with strtok
+        token = strtok(entry, c);
+        while(token != NULL) {
+            if(token != ",") {
+                char *column = malloc(MAXCOLLEN * sizeof(char));
+                printf("%s ", token);
+                column++;
+            }
+        }
+        print(" "); 
+
+        // 3. Place inside of dayDatas.
+        entries[numEntriesAdded].columnValues = columnValues; 
+        // 4. Return. 
+        printf("\n");
+        numEntriesAdded++;
+        column = 0;
     }
 
+    // Free and return.
     free(entry);
     fclose(fptr); 
     return entries;
@@ -124,10 +154,27 @@ int main() {
     int setSize = getDataSize(); 
     printf("Selected dataset size: %d\n", setSize);
 
-    // Build header
-    dataHeader *header = getHeader(dataPath);
+    // Build header, print columns.
+    dataHeader *header = getHeader(dataPath); 
+    int j = 0;
+    printf("DATA COLUMNS: "); 
+    for(int i = 0; i < header->numColumns; i++) {
+        j = 0;
+        while(header->columnNames[i][j] != '\0') {
+            printf("%c", header->columnNames[i][j]);
+            j++; 
+        }
+        printf(" "); 
+    }
+    printf("\n"); 
 
+    // Get data values.
+    dayData *data = gatherData(dataPath, setSize, header->numColumns); 
+
+    // Free and finish.
     free(dataPath); 
     freeHeader(header);
+    for(int i = 0; i < setSize; i++)
+        freeData(data, setSize, header->numColumns);
     return 0;
 }
