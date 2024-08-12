@@ -27,7 +27,7 @@ char *getDataPath() {
 }
 
 // Get the size of the data set.
-int getDataSize() {
+int getDataSize(char *dataPath) {
     // Setup vars.
     FILE *fptr = fopen(dataPath, "r");
     char *entry;
@@ -37,7 +37,7 @@ int getDataSize() {
 
     // Exclude the header; obtain the number of entries.
     line = getline(&entry, &len, fptr);
-    while((line = getline(&entry, &len, fptr)) != -1 && numEntriesAdded < setSize)
+    while(line = getline(&entry, &len, fptr) != -1)
         numDataLines++; 
 
     // Close and return.
@@ -104,14 +104,11 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
     // Setup: file pointer, loop vars
     FILE *fptr = fopen(dataPath, "r");
     char *entry, *token;
-    const char c[2] = "\""; 
+    const char c[3] = "\"\n"; 
     size_t len = 0; 
     ssize_t line = 0; 
     int numEntriesAdded = 0, curCol = 0; 
     dayData *entries = malloc(setSize * sizeof(dayData));
-
-    // PROBABLE SOURCE OF SEGFAULT: DEALLOCATING FOR ENTRIES THAT DON'T EXIST! AUTOMATICALLY OBTAIN DATA SIZE IN
-    // ANOTHER FUNCTION (e.g. numLines - 1)
 
     // Loop: feed in column data. Skip the first line (header) 
     line = getline(&entry, &len, fptr);
@@ -119,9 +116,9 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
         // 0. Setup 
         char **columnValues = malloc(numColumns * sizeof(char *));
 
-        // 1. Parse the line with strtok
+        // 1. Parse the line with strtok; grab values between quotes that are not commas - e.g. column values. 
         token = strtok(entry, c);
-        while(token != NULL && token != "\n") { // THERE IS NO NULL TOKEN IN THE FILE! DOH! 
+        while(token != NULL && token != "\n") { 
             if(strcmp(token, ",") != 0) {
                 char *column = malloc(MAXCOLLEN * sizeof(char));
                 strcpy(column, token);
@@ -134,7 +131,6 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
 
         // 3. Place inside of dayDatas.
         entries[numEntriesAdded].columnValues = columnValues; 
-        // 4. Return. 
         printf("\n");
         numEntriesAdded++;
         curCol = 0;
@@ -154,7 +150,7 @@ int main() {
     printf("Selected file: %s\n", dataPath);
 
     // Get size of dataset.
-    int setSize = getDataSize(); 
+    int setSize = getDataSize(dataPath); 
     printf("Dataset size: %d\n", setSize);
     scanf("");
 
