@@ -17,4 +17,5 @@ typedef struct header {
 // Free the contained pointers within the header.
 void freeHeader(dataHeader *d);
 
+// Free the contained pointers in a data array. 
 void freeData(dayData *d, int setSize, int numColumns);

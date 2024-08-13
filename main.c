@@ -123,7 +123,6 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
                 char *column = malloc(MAXCOLLEN * sizeof(char));
                 strcpy(column, token);
                 columnValues[curCol] = column; 
-                printf("%s ", token);
                 curCol++;
             }
             token = strtok(NULL, c);
@@ -131,7 +130,6 @@ dayData *gatherData(char *dataPath, int setSize, int numColumns) {
 
         // 3. Place inside of dayDatas.
         entries[numEntriesAdded].columnValues = columnValues; 
-        printf("\n");
         numEntriesAdded++;
         curCol = 0;
     }
@@ -173,7 +171,22 @@ int main() {
 
     // Free and finish.
     free(dataPath); 
+
+    for(int i = 0; i < setSize; i++) {
+        printf("%d. ", i);
+        for(j = 0; j < header->numColumns; j++)
+            printf("%s ", data[i].columnValues[j]);
+        printf("\n");
+    }
+
     freeData(data, setSize, header->numColumns);
     freeHeader(header);
     return 0;
 }
+
+/*
+1. LET USER SELECT COLUMNS.
+2. FORMAT DATA FOR PLOTTING.
+3. PLOT USING GNUPLOT_I
+4. README ETC.
+*/
